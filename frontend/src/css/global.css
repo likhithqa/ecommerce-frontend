@@ -1,0 +1,78 @@
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6;
+  color: #1a1a1a;
+  background: #ffffff;
+}
+
+/* Common focus states for accessibility */
+.action-btn:focus,
+.search-input:focus,
+.nav-link:focus,
+.mobile-nav-link:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Common transition utilities */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-quick {
+  transition: all 0.2s ease;
+}
+
+/* Common hover effects */
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Common button styles */
+.btn-base {
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-base:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Common text styles */
+.text-muted {
+  color: #4b5563;
+}
+
+.text-primary {
+  color: #3b82f6;
+}
+
+.text-dark {
+  color: #1a1a1a;
+}
+
+/* Common shadow utilities */
+.shadow-soft {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
