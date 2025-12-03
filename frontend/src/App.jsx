@@ -1,9 +1,39 @@
 import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
 import Header from './components/header'
 import HeroSection from './components/herosection'
 import Login from './components/login'
+import AdminDashboard from './pages/admin_dashboard'
+import Clients from './pages/clients'
+import Projects from './pages/projects'
+import ProjectDetails from './pages/project_details'
+import Tasks from './pages/tasks'
 import { UserProvider } from './contexts/UserContext'
+
+// Error Component
+const ErrorPage = () => {
+  const navigate = useNavigate()
+  
+  return (
+    <div className="app">
+      <Header onLoginClick={() => {}} />
+      <main className="main-content">
+        <div className="page-content">
+          <h1>Error Page</h1>
+          <p>Something went wrong. Please try again later.</p>
+          <div style={{ marginTop: '20px' }}>
+            <button onClick={() => window.history.back()} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}>
+              Go Back
+            </button>
+            <button onClick={() => navigate('/')} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+              Home
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
 
 
 function App() {
@@ -12,40 +42,88 @@ function App() {
   return (
     <UserProvider>
       <Router>
-        <div className="app">
-          <Header onLoginClick={() => setIsLoginOpen(true)} />
-          <main className="main-content">
-            <Routes>
-              <Route path="/" element={<HeroSection />} />
-              <Route path="/products" element={
+        <Routes>
+          <Route path="/" element={
+            <div className="app">
+              <Header onLoginClick={() => setIsLoginOpen(true)} />
+              <main className="main-content">
+                <HeroSection />
+              </main>
+              <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+            </div>
+          } />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/clients" element={<Clients />} />
+          <Route path="/admin/projects" element={<Projects />} />
+          <Route path="/admin/projects/:id" element={<ProjectDetails />} />
+          <Route path="/admin/tasks" element={<Tasks />} />
+          <Route path="/client/landing" element={
+            <div className="app">
+              <Header onLoginClick={() => setIsLoginOpen(true)} />
+              <main className="main-content">
+                <div className="page-content">
+                  <h1>Welcome to Client Landing Page</h1>
+                  <p>Browse our amazing products and start shopping!</p>
+                  <div style={{ marginTop: '20px' }}>
+                    <button onClick={() => setIsLoginOpen(true)} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+                      Back to Login
+                    </button>
+                  </div>
+                </div>
+              </main>
+              <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+            </div>
+          } />
+          <Route path="/products" element={
+            <div className="app">
+              <Header onLoginClick={() => setIsLoginOpen(true)} />
+              <main className="main-content">
                 <div className="page-content">
                   <h1>Products</h1>
                   <p>Browse our amazing collection</p>
                 </div>
-              } />
-              <Route path="/categories" element={
+              </main>
+              <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+            </div>
+          } />
+          <Route path="/categories" element={
+            <div className="app">
+              <Header onLoginClick={() => setIsLoginOpen(true)} />
+              <main className="main-content">
                 <div className="page-content">
                   <h1>Categories</h1>
                   <p>Shop by category</p>
                 </div>
-              } />
-              <Route path="/deals" element={
+              </main>
+              <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+            </div>
+          } />
+          <Route path="/deals" element={
+            <div className="app">
+              <Header onLoginClick={() => setIsLoginOpen(true)} />
+              <main className="main-content">
                 <div className="page-content">
                   <h1>Hot Deals</h1>
                   <p>Check out our latest offers</p>
                 </div>
-              } />
-              <Route path="/about" element={
+              </main>
+              <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+            </div>
+          } />
+          <Route path="/about" element={
+            <div className="app">
+              <Header onLoginClick={() => setIsLoginOpen(true)} />
+              <main className="main-content">
                 <div className="page-content">
                   <h1>About Us</h1>
                   <p>Learn more about ShopHub</p>
                 </div>
-              } />
-            </Routes>
-          </main>
-          {/* Login Modal rendered at root level */}
-          <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-        </div>
+              </main>
+              <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+            </div>
+          } />
+          <Route path="/error" element={<ErrorPage />} />
+        </Routes>
       </Router>
     </UserProvider>
   )

@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import '../css/login.css'
 import { useUser } from '../contexts/UserContext'
 
 const Login = ({ isOpen, onClose }) => {
   const { login } = useUser()
+  const navigate = useNavigate()
   const [step, setStep] = useState('credentials') // 'credentials' or 'otp'
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState(['', '', '', ''])
@@ -146,12 +148,25 @@ const Login = ({ isOpen, onClose }) => {
           console.log('Login successful:', data)
           // Store user data in context
           login(data.user)
+          
+          // Store user role in localStorage for role-based access
+          localStorage.setItem('userRole', data.user.role)
+          localStorage.setItem('userToken', 'dummy-token') // You can store actual token here
+          
           onClose()
           // Reset form
           setStep('credentials')
           setEmail('')
           setOtp(['', '', '', ''])
           setCurrentOtp('')
+          
+          // Role-based redirection
+          if (data.user.role === 'admin' || data.user.role === 'manager') {
+            navigate('/admin/dashboard')
+          } else {
+            // For team_member and client users, redirect to landing page
+            navigate('/client/landing')
+          }
         } else {
           setError(data.message || 'Login failed. Please try again.')
           if (data.errors) {
@@ -306,6 +321,11 @@ const Login = ({ isOpen, onClose }) => {
           console.log('Registration successful:', data)
           // Store user data in context
           login(data.user)
+          
+          // Store user role in localStorage for role-based access
+          localStorage.setItem('userRole', data.user.role)
+          localStorage.setItem('userToken', 'dummy-token') // You can store actual token here
+          
           // Reset registration form
           setShowRegistration(false)
           setShowRegOtp(false)
@@ -315,6 +335,14 @@ const Login = ({ isOpen, onClose }) => {
           setRegOtp(['', '', '', ''])
           // Optionally close the modal
           onClose()
+          
+          // Role-based redirection
+          if (data.user.role === 'admin' || data.user.role === 'manager') {
+            navigate('/admin/dashboard')
+          } else {
+            // For team_member and client users, redirect to landing page
+            navigate('/client/landing')
+          }
         } else {
           setRegError(data.message || 'Invalid OTP. Please try again.')
         }

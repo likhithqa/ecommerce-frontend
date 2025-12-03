@@ -14,6 +14,24 @@ body {
   background: #ffffff;
 }
 
+/* App layout fixes */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 70px; /* Account for fixed header */
+}
+
+.page-content {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 /* Common focus states for accessibility */
 .action-btn:focus,
 .search-input:focus,
