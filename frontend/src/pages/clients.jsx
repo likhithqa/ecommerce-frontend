@@ -706,66 +706,28 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedClient, setSelectedClient] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
+    client_name: '',
     email: '',
-    company: '',
     phone: '',
+    company_name: '',
+    gst_number: '',
+    business_type: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    state: '',
+    country: '',
+    pincode: '',
     status: 'active',
-    address: ''
+    is_verified: 0,
+    notes: ''
   });
-  const [clients] = useState([
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      company: 'Tech Corp',
-      status: 'active',
-      projects: 5,
-      revenue: 45000,
-      joinDate: '2023-01-15'
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@example.com',
-      company: 'Design Studio',
-      status: 'active',
-      projects: 3,
-      revenue: 32000,
-      joinDate: '2023-02-20'
-    },
-    {
-      id: 3,
-      name: 'Mike Wilson',
-      email: 'mike.w@example.com',
-      company: 'Marketing Pro',
-      status: 'inactive',
-      projects: 2,
-      revenue: 18000,
-      joinDate: '2023-03-10'
-    },
-    {
-      id: 4,
-      name: 'Emily Davis',
-      email: 'emily.d@example.com',
-      company: 'Creative Agency',
-      status: 'active',
-      projects: 8,
-      revenue: 67000,
-      joinDate: '2023-04-05'
-    },
-    {
-      id: 5,
-      name: 'David Brown',
-      email: 'david.b@example.com',
-      company: 'Startup Inc',
-      status: 'pending',
-      projects: 1,
-      revenue: 8000,
-      joinDate: '2023-05-12'
-    }
-  ]);
+  const [clients, setClients] = useState([]);
 
   useEffect(() => {
     // Check if user is admin or manager, otherwise redirect to home page
@@ -774,7 +736,79 @@ const Clients = () => {
       navigate('/');
       return;
     }
+    
+    // Fetch clients from API
+    fetchClients();
   }, [navigate]);
+
+  const fetchClients = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/clients/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.clients) {
+        // Transform API response to match table structure
+        const transformedClients = data.clients.map(client => ({
+          id: client.client_id,
+          name: client.client_name,
+          email: client.email,
+          company: client.company_name,
+          status: client.status,
+          projects: 0, // Not available in API
+          revenue: 0, // Not available in API
+          joinDate: client.created_at
+        }));
+        setClients(transformedClients);
+      }
+    } catch (err) {
+      console.error('Error fetching clients:', err);
+    }
+  };
+
+  const handleEditClick = async (clientId) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/clients/${clientId}/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.client) {
+        const client = data.client;
+        setSelectedClient(client);
+        setFormData({
+          client_name: client.client_name || '',
+          email: client.email || '',
+          phone: client.phone || '',
+          company_name: client.company_name || '',
+          gst_number: client.gst_number || '',
+          business_type: client.business_type || '',
+          address_line1: client.address_line1 || '',
+          address_line2: client.address_line2 || '',
+          city: client.city || '',
+          state: client.state || '',
+          country: client.country || '',
+          pincode: client.pincode || '',
+          status: client.status || 'active',
+          is_verified: client.is_verified || 0,
+          notes: client.notes || ''
+        });
+        setShowEditModal(true);
+      }
+    } catch (err) {
+      console.error('Error fetching client:', err);
+      alert('Failed to load client data');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('userToken');
@@ -789,19 +823,52 @@ const Clients = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('New client data:', formData);
-    // Here you would typically send the data to your backend
-    setShowAddModal(false);
-    setFormData({
-      name: '',
-      email: '',
-      company: '',
-      phone: '',
-      status: 'active',
-      address: ''
-    });
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/clients/add/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Client added successfully!');
+        setShowAddModal(false);
+        setFormData({
+          client_name: '',
+          email: '',
+          phone: '',
+          company_name: '',
+          gst_number: '',
+          business_type: '',
+          address_line1: '',
+          address_line2: '',
+          city: '',
+          state: '',
+          country: '',
+          pincode: '',
+          status: 'active',
+          is_verified: 0,
+          notes: ''
+        });
+        // Refresh clients list
+        fetchClients();
+      } else {
+        setError(data.message || 'Failed to add client');
+      }
+    } catch (err) {
+      setError('Error connecting to server: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -1000,7 +1067,7 @@ const Clients = () => {
                           <ViewButton>
                             <Eye />
                           </ViewButton>
-                          <EditButton>
+                          <EditButton onClick={() => handleEditClick(client.id)}>
                             <Edit />
                           </EditButton>
                           <DeleteButton>
@@ -1031,12 +1098,26 @@ const Clients = () => {
           </ModalHeader>
 
           <form onSubmit={handleSubmit}>
+            {error && (
+              <div style={{
+                padding: '12px 16px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '12px',
+                color: '#ef4444',
+                marginBottom: '16px',
+                fontSize: '14px'
+              }}>
+                {error}
+              </div>
+            )}
+
             <FormGroup>
               <FormLabel>Client Name *</FormLabel>
               <FormInput
                 type="text"
-                name="name"
-                value={formData.name}
+                name="client_name"
+                value={formData.client_name}
                 onChange={handleInputChange}
                 placeholder="Enter client name"
                 required
@@ -1056,24 +1137,113 @@ const Clients = () => {
             </FormGroup>
 
             <FormGroup>
-              <FormLabel>Company</FormLabel>
-              <FormInput
-                type="text"
-                name="company"
-                value={formData.company}
-                onChange={handleInputChange}
-                placeholder="Enter company name"
-              />
-            </FormGroup>
-
-            <FormGroup>
-              <FormLabel>Phone Number</FormLabel>
+              <FormLabel>Phone Number *</FormLabel>
               <FormInput
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
                 placeholder="Enter phone number"
+                required
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Company Name</FormLabel>
+              <FormInput
+                type="text"
+                name="company_name"
+                value={formData.company_name}
+                onChange={handleInputChange}
+                placeholder="Enter company name"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>GST Number</FormLabel>
+              <FormInput
+                type="text"
+                name="gst_number"
+                value={formData.gst_number}
+                onChange={handleInputChange}
+                placeholder="Enter GST number"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Business Type</FormLabel>
+              <FormInput
+                type="text"
+                name="business_type"
+                value={formData.business_type}
+                onChange={handleInputChange}
+                placeholder="Enter business type"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Address Line 1</FormLabel>
+              <FormInput
+                type="text"
+                name="address_line1"
+                value={formData.address_line1}
+                onChange={handleInputChange}
+                placeholder="Enter address line 1"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Address Line 2</FormLabel>
+              <FormInput
+                type="text"
+                name="address_line2"
+                value={formData.address_line2}
+                onChange={handleInputChange}
+                placeholder="Enter address line 2"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>City</FormLabel>
+              <FormInput
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                placeholder="Enter city"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>State</FormLabel>
+              <FormInput
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleInputChange}
+                placeholder="Enter state"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Country</FormLabel>
+              <FormInput
+                type="text"
+                name="country"
+                value={formData.country}
+                onChange={handleInputChange}
+                placeholder="Enter country"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Pincode</FormLabel>
+              <FormInput
+                type="text"
+                name="pincode"
+                value={formData.pincode}
+                onChange={handleInputChange}
+                placeholder="Enter pincode"
               />
             </FormGroup>
 
@@ -1091,13 +1261,13 @@ const Clients = () => {
             </FormGroup>
 
             <FormGroup>
-              <FormLabel>Address</FormLabel>
+              <FormLabel>Notes</FormLabel>
               <FormInput
                 type="text"
-                name="address"
-                value={formData.address}
+                name="notes"
+                value={formData.notes}
                 onChange={handleInputChange}
-                placeholder="Enter address"
+                placeholder="Enter notes"
               />
             </FormGroup>
 
@@ -1105,8 +1275,209 @@ const Clients = () => {
               <CancelButton type="button" onClick={() => setShowAddModal(false)}>
                 Cancel
               </CancelButton>
-              <SubmitButton type="submit">
-                Add Client
+              <SubmitButton type="submit" disabled={loading}>
+                {loading ? 'Adding...' : 'Add Client'}
+              </SubmitButton>
+            </FormButtons>
+          </form>
+        </ModalContainer>
+      </ModalOverlay>
+
+      {/* Edit Client Modal */}
+      <ModalOverlay $show={showEditModal}>
+        <ModalContainer>
+          <ModalHeader>
+            <ModalTitle>Edit Client</ModalTitle>
+            <CloseModalButton onClick={() => setShowEditModal(false)}>
+              <X />
+            </CloseModalButton>
+          </ModalHeader>
+
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            // Handle edit submission
+            console.log('Edit client:', selectedClient?.client_id, formData);
+            alert('Edit functionality coming soon');
+          }}>
+            {error && (
+              <div style={{
+                padding: '12px 16px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '12px',
+                color: '#ef4444',
+                marginBottom: '16px',
+                fontSize: '14px'
+              }}>
+                {error}
+              </div>
+            )}
+
+            <FormGroup>
+              <FormLabel>Client Name *</FormLabel>
+              <FormInput
+                type="text"
+                name="client_name"
+                value={formData.client_name}
+                onChange={handleInputChange}
+                placeholder="Enter client name"
+                required
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Email Address *</FormLabel>
+              <FormInput
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter email address"
+                required
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Phone Number *</FormLabel>
+              <FormInput
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Enter phone number"
+                required
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Company Name</FormLabel>
+              <FormInput
+                type="text"
+                name="company_name"
+                value={formData.company_name}
+                onChange={handleInputChange}
+                placeholder="Enter company name"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>GST Number</FormLabel>
+              <FormInput
+                type="text"
+                name="gst_number"
+                value={formData.gst_number}
+                onChange={handleInputChange}
+                placeholder="Enter GST number"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Business Type</FormLabel>
+              <FormInput
+                type="text"
+                name="business_type"
+                value={formData.business_type}
+                onChange={handleInputChange}
+                placeholder="Enter business type"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Address Line 1</FormLabel>
+              <FormInput
+                type="text"
+                name="address_line1"
+                value={formData.address_line1}
+                onChange={handleInputChange}
+                placeholder="Enter address line 1"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Address Line 2</FormLabel>
+              <FormInput
+                type="text"
+                name="address_line2"
+                value={formData.address_line2}
+                onChange={handleInputChange}
+                placeholder="Enter address line 2"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>City</FormLabel>
+              <FormInput
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                placeholder="Enter city"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>State</FormLabel>
+              <FormInput
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleInputChange}
+                placeholder="Enter state"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Country</FormLabel>
+              <FormInput
+                type="text"
+                name="country"
+                value={formData.country}
+                onChange={handleInputChange}
+                placeholder="Enter country"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Pincode</FormLabel>
+              <FormInput
+                type="text"
+                name="pincode"
+                value={formData.pincode}
+                onChange={handleInputChange}
+                placeholder="Enter pincode"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Status</FormLabel>
+              <FormSelect
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="pending">Pending</option>
+              </FormSelect>
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel>Notes</FormLabel>
+              <FormInput
+                type="text"
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                placeholder="Enter notes"
+              />
+            </FormGroup>
+
+            <FormButtons>
+              <CancelButton type="button" onClick={() => setShowEditModal(false)}>
+                Cancel
+              </CancelButton>
+              <SubmitButton type="submit" disabled={loading}>
+                {loading ? 'Updating...' : 'Update Client'}
               </SubmitButton>
             </FormButtons>
           </form>

@@ -8,6 +8,8 @@ import Clients from './pages/clients'
 import Projects from './pages/projects'
 import ProjectDetails from './pages/project_details'
 import Tasks from './pages/tasks'
+import Invoices from './pages/invoices'
+import TeamManagement from './pages/team'
 import { UserProvider } from './contexts/UserContext'
 
 // Error Component
@@ -54,9 +56,11 @@ function App() {
           } />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/clients" element={<Clients />} />
+          <Route path="/admin/team" element={<TeamManagement />} />
           <Route path="/admin/projects" element={<Projects />} />
           <Route path="/admin/projects/:id" element={<ProjectDetails />} />
           <Route path="/admin/tasks" element={<Tasks />} />
+          <Route path="/admin/invoices" element={<Invoices />} />
           <Route path="/client/landing" element={
             <div className="app">
               <Header onLoginClick={() => setIsLoginOpen(true)} />

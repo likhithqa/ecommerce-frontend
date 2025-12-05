@@ -11,7 +11,8 @@ import {
   Settings,
   X,
   Menu,
-  CheckCircle
+  CheckCircle,
+  UserPlus
 } from 'lucide-react';
 
 // Styled Components
@@ -144,6 +145,7 @@ const Sidebar = ({ open, onClose }) => {
   const sidebarItems = [
     { icon: Home, label: 'Dashboard', path: '/admin/dashboard' },
     { icon: Users, label: 'Clients', path: '/admin/clients' },
+    { icon: UserPlus, label: 'Team Management', path: '/admin/team' },
     { icon: FileText, label: 'Projects', path: '/admin/projects' },
     { icon: CheckCircle, label: 'Tasks', path: '/admin/tasks' },
     { icon: DollarSign, label: 'Invoices', path: '/admin/invoices' },
